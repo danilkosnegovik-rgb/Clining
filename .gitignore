@@ -4,6 +4,8 @@ admin/api/config.local.php
 .env.local
 
 # OS & Editor artifacts
+__pycache__/
+*.pyc
 Thumbs.db
 desktop.ini
 .DS_Store

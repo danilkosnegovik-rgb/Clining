@@ -79,6 +79,88 @@ code {
   letter-spacing: 0.04em;
 }
 
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-user-pill {
+  font-size: 13px;
+  font-weight: 600;
+  color: #F3D9C6;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Auth Overlay & Credentials Modal */
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(26, 14, 9, 0.88);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.auth-overlay[hidden] {
+  display: none;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 430px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.auth-brand {
+  margin-bottom: 20px;
+}
+
+.auth-brand h2 {
+  margin: 12px 0 6px;
+  font-size: 22px;
+}
+
+.auth-error {
+  padding: 10px 12px;
+  border-radius: 7px;
+  background: #FDECEB;
+  color: var(--danger);
+  border: 1px solid #F5B7B1;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.auth-submit {
+  width: 100%;
+  padding: 12px;
+}
+
+.auth-back-link {
+  display: block;
+  text-align: center;
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.auth-back-link:hover {
+  color: var(--accent);
+}
+
 .admin-main {
   padding-top: 24px;
   padding-bottom: 56px;

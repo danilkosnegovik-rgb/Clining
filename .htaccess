@@ -1,0 +1,6 @@
+# Запрет прямого HTTP-доступа к .env, служебным файлам и Git
+<FilesMatch "^(\.env(\..*)?|\.gitignore|AGENTS\.md|server\.py)$">
+  Require all denied
+</FilesMatch>
+
+RedirectMatch 404 /\.git

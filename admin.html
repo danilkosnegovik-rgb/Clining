@@ -10,6 +10,71 @@
   <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
+  <!-- Auth Gate Overlay -->
+  <div class="auth-overlay" id="authOverlay">
+    <form class="auth-card" id="loginForm" autocomplete="on">
+      <div class="auth-brand">
+        <span class="admin-badge">ICT ADMIN</span>
+        <h2>Вход в админ-панель</h2>
+        <p class="adm-muted">Защищённая авторизация (PBKDF2 + HMAC-SHA256, хранение в <code>.env</code>)</p>
+      </div>
+
+      <label class="field">
+        <span>Логин</span>
+        <input type="text" id="loginUsername" name="username" autocomplete="username" required placeholder="Введите логин">
+      </label>
+
+      <label class="field">
+        <span>Пароль</span>
+        <input type="password" id="loginPassword" name="password" autocomplete="current-password" required placeholder="Введите пароль">
+      </label>
+
+      <div class="auth-error" id="loginError" hidden></div>
+
+      <button type="submit" class="adm-btn adm-btn-primary auth-submit" id="btnLoginSubmit">Войти</button>
+      <a href="index.html" class="auth-back-link">← Вернуться на сайт</a>
+    </form>
+  </div>
+
+  <!-- Change Credentials Modal -->
+  <div class="auth-overlay" id="credsModal" hidden>
+    <form class="auth-card" id="credsForm">
+      <div class="auth-brand">
+        <span class="admin-badge">БЕЗОПАСНОСТЬ</span>
+        <h2>Сменить логин и пароль</h2>
+        <p class="adm-muted">Новые данные будут захешированы в браузере и сохранены в <code>.env</code></p>
+      </div>
+
+      <label class="field">
+        <span>Текущий пароль</span>
+        <input type="password" id="credCurrentPassword" autocomplete="current-password" required placeholder="Подтвердите текущий пароль">
+      </label>
+
+      <label class="field">
+        <span>Новый логин</span>
+        <input type="text" id="credNewLogin" required minlength="3" placeholder="Минимум 3 символа">
+      </label>
+
+      <label class="field">
+        <span>Новый пароль</span>
+        <input type="password" id="credNewPassword" autocomplete="new-password" required minlength="6" placeholder="Минимум 6 символов">
+      </label>
+
+      <label class="field">
+        <span>Повторите новый пароль</span>
+        <input type="password" id="credConfirmPassword" autocomplete="new-password" required minlength="6" placeholder="Повторите новый пароль">
+      </label>
+
+      <div class="auth-error" id="credsError" hidden></div>
+
+      <div class="btn-row">
+        <button type="submit" class="adm-btn adm-btn-primary" id="btnCredsSubmit">Сохранить в .env</button>
+        <button type="button" class="adm-btn adm-btn-ghost" id="btnCredsCancel">Отмена</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="adminApp" hidden>
   <header class="admin-header">
     <div class="admin-container admin-header-inner">
       <div class="admin-brand">
@@ -17,6 +82,9 @@
         <h1>Панель управления сайтом</h1>
       </div>
       <div class="admin-header-actions">
+        <span class="admin-user-pill" id="currentUserPill"></span>
+        <button type="button" class="adm-btn adm-btn-outline" id="btnOpenCreds">Сменить логин / пароль</button>
+        <button type="button" class="adm-btn adm-btn-outline" id="btnLogout">Выйти</button>
         <a href="index.html" target="_blank" rel="noopener" class="adm-btn adm-btn-outline">Открыть сайт ↗</a>
       </div>
     </div>
@@ -72,15 +140,10 @@
 
       <!-- PHP Mode Config -->
       <div class="mode-panel" id="modePanelPhp" hidden>
-        <div class="form-grid-2">
-          <label class="field">
-            <span>Пароль администратора PHP</span>
-            <input type="password" id="phpPassword" placeholder="Введите пароль из admin/api/config.local.php">
-          </label>
-          <div class="mode-hint-box">
-            Используются серверные обработчики <code>admin/api/upload.php</code> и <code>admin/api/save-services.php</code>.
-          </div>
-        </div>
+        <p class="mode-hint">
+          Используется ваша текущая защищённая <code>HttpOnly</code>-сессия (авторизация по <code>.env</code>).
+          Файлы сохраняются через <code>admin/api/upload.php</code> и <code>admin/api/save-services.php</code>.
+        </p>
       </div>
     </section>
 
@@ -217,6 +280,7 @@
       </div>
     </section>
   </main>
+  </div>
 
   <script src="js/admin.js"></script>
 </body>

@@ -170,15 +170,8 @@
     return putRes.json();
   }
 
-  // PHP API Helpers
-  function getPhpPassword() {
-    const pwd = document.getElementById('phpPassword').value;
-    if (!pwd) throw new Error('Введите пароль администратора PHP');
-    return pwd;
-  }
-
+  // PHP / Server API Helpers (uses HttpOnly session cookie from .env auth)
   async function phpUploadWebp(blob, targetFilename, slotMeta) {
-    const pwd = getPhpPassword();
     const fd = new FormData();
     fd.append('file', blob, targetFilename);
     fd.append('filename', targetFilename);
@@ -187,23 +180,22 @@
 
     const res = await fetch('admin/api/upload.php', {
       method: 'POST',
-      headers: { 'X-Admin-Password': pwd },
+      credentials: 'same-origin',
       body: fd
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
-      throw new Error(data.error || `Ошибка PHP-сервера (${res.status})`);
+      throw new Error(data.error || `Ошибка сервера (${res.status})`);
     }
     return data;
   }
 
   async function phpSaveServices(payload) {
-    const pwd = getPhpPassword();
     const res = await fetch('admin/api/save-services.php', {
       method: 'POST',
+      credentials: 'same-origin',
       headers: {
-        'Content-Type': 'application/json',
-        'X-Admin-Password': pwd
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     });
@@ -464,17 +456,16 @@
         await githubPutFile('data/media.json', b64, 'Update data/media.json via ICT Admin');
         showToast('data/media.json опубликован в GitHub', 'success');
       } else if (currentMode === 'php') {
-        const pwd = getPhpPassword();
         const fd = new FormData();
         fd.append('mediaJson', JSON.stringify(mediaState));
         const res = await fetch('admin/api/upload.php', {
           method: 'POST',
-          headers: { 'X-Admin-Password': pwd },
+          credentials: 'same-origin',
           body: fd
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.ok) throw new Error(data.error || 'Ошибка сохранения media.json');
-        showToast('data/media.json сохранён на PHP-сервере', 'success');
+        showToast('data/media.json сохранён на сервере', 'success');
       }
     } catch (err) {
       showToast(err.message, 'error');
@@ -716,9 +707,216 @@
     showToast('Локальный предпросмотр сброшен. Перезагрузите страницу для загрузки данных с диска.', 'info');
   });
 
-  // Init
-  async function init() {
-    // Restore saved GitHub settings (never hardcoded)
+  // =========================================================================
+  // Secure Authentication (.env + PBKDF2-SHA256 + HMAC-SHA256 Challenge)
+  // =========================================================================
+  const authOverlay = document.getElementById('authOverlay');
+  const adminApp = document.getElementById('adminApp');
+  const loginForm = document.getElementById('loginForm');
+  const loginError = document.getElementById('loginError');
+  const currentUserPill = document.getElementById('currentUserPill');
+  const credsModal = document.getElementById('credsModal');
+  const credsForm = document.getElementById('credsForm');
+  const credsError = document.getElementById('credsError');
+
+  let currentAdminLogin = '';
+  let dataLoaded = false;
+
+  function bufToHex(buffer) {
+    return Array.from(new Uint8Array(buffer))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  }
+
+  function randomHex(byteLen) {
+    const arr = new Uint8Array(byteLen);
+    crypto.getRandomValues(arr);
+    return bufToHex(arr.buffer);
+  }
+
+  async function derivePbkdf2Hex(password, salt, iterations) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(password),
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+    const bits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: enc.encode(salt),
+        iterations: Number(iterations),
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      256
+    );
+    return bufToHex(bits);
+  }
+
+  async function computeHmacHex(secretHexKey, message) {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(secretHexKey),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+    return bufToHex(sig);
+  }
+
+  async function fetchChallenge() {
+    const res = await fetch(`admin/api/auth.php?action=challenge&t=${Date.now()}`, {
+      credentials: 'same-origin',
+      cache: 'no-store'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || 'Сервер авторизации недоступен. Запустите сайт через server.py или PHP-хостинг.');
+    }
+    return data;
+  }
+
+  function showAuthenticatedUI(login) {
+    currentAdminLogin = login;
+    currentUserPill.textContent = `Вход: ${login}`;
+    authOverlay.hidden = true;
+    adminApp.hidden = false;
+    if (!dataLoaded) {
+      dataLoaded = true;
+      loadAdminData();
+    }
+  }
+
+  function showLoginUI() {
+    currentAdminLogin = '';
+    adminApp.hidden = true;
+    credsModal.hidden = true;
+    authOverlay.hidden = false;
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginUsername').focus();
+  }
+
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    loginError.hidden = true;
+    const submitBtn = document.getElementById('btnLoginSubmit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Проверка...';
+
+    try {
+      const login = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const ch = await fetchChallenge();
+      const derivedHash = await derivePbkdf2Hex(password, ch.salt, ch.iterations);
+      const proof = await computeHmacHex(derivedHash, `${ch.nonce}:${login}`);
+
+      const res = await fetch('admin/api/auth.php?action=login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ login, nonce: ch.nonce, proof })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Неверный логин или пароль');
+      }
+      document.getElementById('loginPassword').value = '';
+      showAuthenticatedUI(data.login);
+    } catch (err) {
+      loginError.textContent = err.message;
+      loginError.hidden = false;
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Войти';
+    }
+  });
+
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    await fetch('admin/api/auth.php?action=logout', {
+      method: 'POST',
+      credentials: 'same-origin'
+    }).catch(() => {});
+    showLoginUI();
+  });
+
+  document.getElementById('btnOpenCreds').addEventListener('click', () => {
+    credsError.hidden = true;
+    credsForm.reset();
+    document.getElementById('credNewLogin').value = currentAdminLogin;
+    credsModal.hidden = false;
+    document.getElementById('credCurrentPassword').focus();
+  });
+
+  document.getElementById('btnCredsCancel').addEventListener('click', () => {
+    credsModal.hidden = true;
+  });
+
+  credsModal.addEventListener('click', (e) => {
+    if (e.target === credsModal) credsModal.hidden = true;
+  });
+
+  credsForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    credsError.hidden = true;
+    const btn = document.getElementById('btnCredsSubmit');
+    btn.disabled = true;
+
+    try {
+      const curPwd = document.getElementById('credCurrentPassword').value;
+      const newLogin = document.getElementById('credNewLogin').value.trim();
+      const newPwd = document.getElementById('credNewPassword').value;
+      const confirmPwd = document.getElementById('credConfirmPassword').value;
+
+      if (newLogin.length < 3) throw new Error('Логин должен содержать минимум 3 символа');
+      if (newPwd.length < 6) throw new Error('Новый пароль должен содержать минимум 6 символов');
+      if (newPwd !== confirmPwd) throw new Error('Новые пароли не совпадают');
+
+      const ch = await fetchChallenge();
+      const curDerived = await derivePbkdf2Hex(curPwd, ch.salt, ch.iterations);
+      const currentProof = await computeHmacHex(curDerived, `${ch.nonce}:${currentAdminLogin}`);
+
+      const newSalt = randomHex(16);
+      const iterations = 120000;
+      const newHash = await derivePbkdf2Hex(newPwd, newSalt, iterations);
+
+      const res = await fetch('admin/api/auth.php?action=change-credentials', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nonce: ch.nonce,
+          currentProof,
+          newLogin,
+          newSalt,
+          newHash,
+          iterations
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Не удалось обновить учётные данные');
+      }
+
+      currentAdminLogin = data.login;
+      currentUserPill.textContent = `Вход: ${data.login}`;
+      credsModal.hidden = true;
+      credsForm.reset();
+      showToast('Логин и пароль успешно обновлены и сохранены в .env в зашифрованном (хешированном) виде.', 'success');
+    } catch (err) {
+      credsError.textContent = err.message;
+      credsError.hidden = false;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Load admin data after authentication
+  async function loadAdminData() {
     const savedRepo = localStorage.getItem(STORAGE_KEYS.ghRepo);
     const savedBranch = localStorage.getItem(STORAGE_KEYS.ghBranch);
     const savedToken = localStorage.getItem(STORAGE_KEYS.ghToken) || sessionStorage.getItem(STORAGE_KEYS.ghToken);
@@ -744,9 +942,24 @@
       renderServicesSidebar();
       renderActiveServiceEditor();
     } catch (err) {
-      showToast(`Не удалось загрузить данные: ${err.message}. Запустите сайт через локальный сервер или хостинг.`, 'error');
+      showToast(`Не удалось загрузить данные: ${err.message}`, 'error');
     }
   }
 
-  init();
+  async function checkSession() {
+    try {
+      const res = await fetch(`admin/api/auth.php?action=session&t=${Date.now()}`, {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok && data.authenticated) {
+        showAuthenticatedUI(data.login);
+        return;
+      }
+    } catch (_) {}
+    showLoginUI();
+  }
+
+  checkSession();
 })();
