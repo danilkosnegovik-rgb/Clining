@@ -613,13 +613,29 @@ button {
 
 .care-card {
   border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   padding: 20px;
   box-shadow: var(--shadow-card);
   display: grid;
   grid-template-columns: 1fr 128px;
   gap: 14px;
   align-items: stretch;
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.care-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 16px 34px rgba(229, 107, 21, 0.16);
+}
+
+.care-card:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.care-card:hover .care-visual img {
+  transform: scale(1.06);
 }
 
 .care-card-light { background-color: var(--bg-card-1); }
@@ -697,6 +713,7 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.35s ease;
 }
 
 .care-dots {
@@ -844,10 +861,17 @@ button {
 
 .contract-card {
   background-color: var(--bg-card-1);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-md);
   padding: 24px;
   box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.contract-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 14px 30px rgba(229, 107, 21, 0.13);
 }
 
 .contract-step-label {
@@ -892,9 +916,24 @@ button {
 .guarantee-card {
   background-color: var(--bg-dark);
   color: var(--text-light);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-md);
   padding: 26px 24px;
   box-shadow: 0 14px 34px rgba(40, 22, 14, 0.16);
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.guarantee-card:hover {
+  transform: translateY(-4px);
+  background-color: #361E13;
+  border-color: var(--accent);
+  box-shadow: 0 18px 40px rgba(229, 107, 21, 0.26);
+}
+
+.guarantee-card:active {
+  transform: translateY(-1px) scale(0.99);
+  border-color: var(--accent-hover);
 }
 
 .guarantee-num {
