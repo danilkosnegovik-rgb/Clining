@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" fill="none" role="img" aria-label="Подбор средств под материалы дома">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FCECE0"/>
+      <stop offset="100%" stop-color="#F0D4B8"/>
+    </linearGradient>
+    <linearGradient id="orange2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F27924"/>
+      <stop offset="100%" stop-color="#D4570D"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="280" rx="16" fill="url(#bg2)"/>
+  <circle cx="62" cy="56" r="36" fill="#FFFFFF" opacity="0.5"/>
+  <!-- Sunlit Window Arch -->
+  <path d="M126 36H198V170H126V36Z" fill="#FFF9F2" opacity="0.65"/>
+  <line x1="162" y1="36" x2="162" y2="170" stroke="#E5C8AC" stroke-width="3"/>
+  <!-- Glossy Floor Line -->
+  <rect x="0" y="196" width="240" height="84" fill="#E9CEB3"/>
+  <ellipse cx="122" cy="222" rx="82" ry="14" fill="#28160E" opacity="0.14"/>
+  <!-- Soft Minimal Armchair Silhouette -->
+  <rect x="102" y="114" width="96" height="72" rx="22" fill="#FFF8F0" stroke="#DFC4A9" stroke-width="2"/>
+  <rect x="132" y="138" width="38" height="28" rx="8" fill="url(#orange2)"/>
+  <!-- Folded Microfiber Cloths Stack -->
+  <rect x="40" y="188" width="110" height="22" rx="9" fill="#28160E"/>
+  <rect x="46" y="168" width="104" height="22" rx="9" fill="url(#orange2)"/>
+  <rect x="52" y="150" width="94" height="20" rx="8" fill="#FFFDF9" stroke="#E4CEB8" stroke-width="1.5"/>
+  <!-- Sparkles -->
+  <path d="M74 96L78 108L90 112L78 116L74 128L70 116L58 112L70 108L74 96Z" fill="#E56B15"/>
+  <path d="M188 80L190.5 87.5L198 90L190.5 92.5L188 100L185.5 92.5L178 90L185.5 87.5L188 80Z" fill="#28160E"/>
+</svg>

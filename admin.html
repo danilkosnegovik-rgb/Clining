@@ -177,15 +177,15 @@
       <div class="adm-card">
         <div class="card-head">
           <div>
-            <h3>Главный баннер (Hero)</h3>
-            <p class="adm-muted">Рекомендуемое соотношение 16:9, автоматический ресайз до 1920px по ширине</p>
+            <h3>Главный баннер (Hero — фото справа)</h3>
+            <p class="adm-muted">3D-эмблема или баннер компании, автоматический ресайз до 1600px в WebP</p>
           </div>
-          <span class="file-path-tag">assets/images/hero.webp</span>
+          <span class="file-path-tag">assets/images/hero-emblem.webp</span>
         </div>
 
         <div class="photo-editor-grid">
           <div class="photo-preview-box">
-            <img id="heroPreviewImg" src="assets/images/hero.webp" alt="Превью Hero">
+            <img id="heroPreviewImg" src="assets/images/hero-emblem.webp" alt="Превью Hero">
           </div>
           <div class="photo-controls-box">
             <label class="dropzone" for="heroFileInput">
@@ -202,15 +202,16 @@
         </div>
       </div>
 
-      <!-- Completed Works Pairs -->
+      <!-- Our Works Photo & Video Gallery -->
       <div class="adm-card">
         <div class="card-head">
           <div>
-            <h3>Выполненные работы («До» и «После»)</h3>
-            <p class="adm-muted">Заменяйте фотографии или добавляйте новые пары объектов (ресайз до 1400px, формат WebP)</p>
+            <h3>Наши работы (галерея фото WebP и видео)</h3>
+            <p class="adm-muted">Отображаются в разделе «Наши работы» и в модалке галереи (фото автоматически конвертируются в WebP до 1400px)</p>
           </div>
           <div class="btn-row">
-            <button type="button" class="adm-btn adm-btn-outline-dark" id="btnAddWorkPair">+ Добавить пару «До / После»</button>
+            <button type="button" class="adm-btn adm-btn-outline-dark" id="btnAddGalleryPhoto">+ Добавить фото (WebP)</button>
+            <button type="button" class="adm-btn adm-btn-outline-dark" id="btnAddGalleryVideo">+ Добавить видео (MP4)</button>
             <button type="button" class="adm-btn adm-btn-primary" id="btnSaveMediaJson">Сохранить media.json</button>
           </div>
         </div>
@@ -242,10 +243,16 @@
             </div>
           </div>
 
-          <label class="field">
-            <span>Название услуги</span>
-            <input type="text" id="srvTitleInput" placeholder="Название услуги">
-          </label>
+          <div class="form-grid-2">
+            <label class="field">
+              <span>Название услуги</span>
+              <input type="text" id="srvTitleInput" placeholder="Название услуги">
+            </label>
+            <label class="field">
+              <span>Цена на карточке-плашке</span>
+              <input type="text" id="srvPriceLabelInput" placeholder="например: от 300 ₽/м² или Цена договорная">
+            </label>
+          </div>
 
           <!-- Included Block -->
           <div class="editor-subsection">

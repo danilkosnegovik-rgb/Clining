@@ -3,24 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ICT — Технологии промышленной чистоты | Промышленный клининг</title>
-  <meta name="description" content="Промышленный клининг, уборка объектов и помещений, послестроительная и генеральная уборка, химчистка, мойка окон и фасадов, уборка после пожара, озонирование.">
+  <title>ICT — Технологии промышленной чистоты | Промышленный клининг в Санкт-Петербурге</title>
+  <meta name="description" content="Промышленный клининг для бизнеса и уборка помещений в Санкт-Петербурге. Работаем по договору, все закрывающие документы, ЭДО.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/motion.css">
 </head>
 <body>
-  <!-- Header -->
-  <header class="site-header" id="top">
+  <!-- Header (auto-hides on scroll down, returns on scroll up) -->
+  <header class="site-header" id="siteHeader">
     <div class="container header-inner">
       <a href="#top" class="brand-logo" aria-label="ICT — Технологии промышленной чистоты">
-        <img src="assets/svg/logo-ict.svg" alt="ICT — Технологии промышленной чистоты" width="220" height="50">
+        <img id="brandLogoImg" src="assets/images/logo-mark.webp" alt="ICT" height="44">
+        <span class="brand-text">
+          <strong class="brand-title">ICT</strong>
+          <span class="brand-subtitle">Технологии промышленной чистоты</span>
+        </span>
       </a>
 
       <nav class="main-nav" aria-label="Основная навигация">
-        <a href="#services" class="nav-link">Услуги</a>
-        <a href="#works" class="nav-link">Работы</a>
+        <a href="#services" class="nav-link">Услуги и цены</a>
+        <a href="#care" class="nav-link">Подход</a>
+        <a href="#works" class="nav-link">Наши работы</a>
+        <a href="#contract" class="nav-link">Договор и ЭДО</a>
+        <a href="#guarantees" class="nav-link">Гарантии</a>
+        <a href="#faq" class="nav-link">Вопросы</a>
         <a href="#contacts" class="nav-link">Контакты</a>
       </nav>
 
@@ -34,116 +43,256 @@
     <!-- Mobile Navigation Drawer -->
     <div class="mobile-drawer" id="mobileDrawer" hidden>
       <div class="container mobile-drawer-inner">
-        <a href="#services" class="mobile-nav-link">Услуги</a>
-        <a href="#works" class="mobile-nav-link">Выполненные работы</a>
-        <a href="#process" class="mobile-nav-link">Как мы работаем</a>
+        <a href="#services" class="mobile-nav-link">Услуги и цены</a>
+        <a href="#care" class="mobile-nav-link">Чистота и забота</a>
+        <a href="#works" class="mobile-nav-link">Наши работы</a>
+        <a href="#how" class="mobile-nav-link">Как договориться</a>
+        <a href="#contract" class="mobile-nav-link">Работаем по договору и ЭДО</a>
+        <a href="#guarantees" class="mobile-nav-link">Наши гарантии</a>
         <a href="#faq" class="mobile-nav-link">Частые вопросы</a>
         <a href="#contacts" class="mobile-nav-link">Контакты</a>
       </div>
     </div>
-
-    <!-- Mobile Quick CTA Bar (matches mobile prototype) -->
-    <div class="mobile-cta-bar">
-      <div class="container mobile-cta-inner">
-        <a href="#contacts" class="btn btn-primary btn-block js-phone-cta">Позвонить</a>
-        <a href="#contacts" class="btn btn-outline-dark btn-block js-email-cta">Написать на почту</a>
-      </div>
-    </div>
   </header>
 
-  <main>
-    <!-- Hero Section -->
+  <main id="top">
+    <!-- Hero Section with Interactive 3D Three.js ICT Logo -->
     <section class="hero" aria-label="Главный баннер">
-      <div class="hero-media">
-        <img id="heroImage" src="assets/images/hero.webp" alt="Сотрудник ICT выполняет промышленный клининг поломоечной машиной" loading="eager">
-        <div class="hero-overlay" aria-hidden="true"></div>
-      </div>
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <h1 class="hero-title">Промышленный клининг для вашего бизнеса и дома</h1>
 
-      <div class="container hero-container">
-        <div class="hero-frame">
-          <h1 class="hero-title">Промышленный<br>клининг</h1>
-          <p class="hero-subtitle">Уборка объектов и помещений</p>
+          <div class="hero-city">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span id="heroCity">Санкт-Петербург и Ленобласть</span>
+          </div>
+
+          <p class="hero-tagline" id="heroTagline">Работаем по договору, все закрывающие документы, работаем с ЭДО. Выигрываем тендеры.</p>
+
           <div class="hero-actions">
-            <a href="#contacts" class="btn btn-primary js-phone-cta">Позвонить</a>
-            <a href="#contacts" class="btn btn-outline-light js-email-cta">Написать на почту</a>
+            <a href="tel:+79113907700" class="btn btn-primary js-phone-cta">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" aria-hidden="true">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              Позвонить
+            </a>
+            <a href="https://t.me/Ict_pro_ru" target="_blank" rel="noopener" class="btn btn-outline-accent js-tg-cta">Написать в Telegram</a>
+          </div>
+        </div>
+
+        <div class="hero-emblem-card" aria-label="Интерактивная 3D-эмблема ICT">
+          <div id="hero3dStage" class="hero-3d-stage"></div>
+          <img id="heroImage" src="assets/images/hero-emblem.webp" alt="ICT — Технологии промышленной чистоты" loading="eager">
+          <div class="hero-emblem-caption">
+            <i class="hero-emblem-rule" aria-hidden="true"></i>
+            <span>ТЕХНОЛОГИИ ПРОМЫШЛЕННОЙ ЧИСТОТЫ</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Services Section -->
-    <section class="section section-cream" id="services">
+    <!-- Services Section (Categorized 2-column Cards on Desktop & Mobile) -->
+    <section class="section" id="services">
       <div class="container">
-        <h2 class="section-title section-title-dark">Услуги</h2>
-        <div class="services-grid" id="servicesGrid" role="list">
+        <div class="section-head-split">
+          <div>
+            <div class="section-eyebrow">УСЛУГИ И ЦЕНЫ</div>
+            <h2 class="section-title">Что будем убирать?</h2>
+          </div>
+          <p class="section-side-note">Нажмите «Подробнее», чтобы узнать состав работ, что не входит и прайс на дополнительные услуги.</p>
+        </div>
+
+        <div class="services-categories" id="servicesCategories">
           <!-- Rendered dynamically from data/services.json -->
         </div>
+
+        <p class="min-order-note">
+          Точную смету фиксируем после осмотра объекта и согласования перечня работ.
+        </p>
       </div>
     </section>
 
-    <!-- Completed Works Section -->
-    <section class="section section-dark" id="works">
+    <!-- Cleanliness & Care Section (compact copy + tags + illustrations + mobile swipe) -->
+    <section class="section section-alt" id="care">
       <div class="container">
-        <div class="section-header-row">
-          <h2 class="section-title section-title-light">Выполненные работы</h2>
-          <span class="section-note" id="worksNote">Фото для примера</span>
+        <div class="section-eyebrow">ВНИМАНИЕ К ДЕТАЛЯМ</div>
+        <h2 class="section-title">Чистота с заботой о вашем пространстве</h2>
+
+        <div class="care-grid" id="careTrack">
+          <article class="care-card care-card-light">
+            <div class="care-body">
+              <span class="care-pill">Дома есть дети?</span>
+              <h3 class="care-title">Учитываем то, что важно семье</h3>
+              <p class="care-text">Подбираем щадящие составы для домов с детьми и питомцами, соблюдаем дозировку и проветривание.</p>
+              <div class="care-tags">
+                <span class="care-tag care-tag-dark">✓ Гипоаллергенно</span>
+                <span class="care-tag care-tag-accent">✦ Без резкого запаха</span>
+              </div>
+            </div>
+            <div class="care-visual">
+              <img src="assets/images/care-family.webp" alt="Безопасная уборка для семьи" loading="lazy">
+            </div>
+          </article>
+
+          <article class="care-card care-card-peach">
+            <div class="care-body">
+              <span class="care-pill">Для вашего дома</span>
+              <h3 class="care-title">Подбираем средства под материалы</h3>
+              <p class="care-text">Учитываем тип покрытия. На деликатных поверхностях всегда делаем тест на незаметном участке.</p>
+              <div class="care-tags">
+                <span class="care-tag care-tag-dark">◈ Проба на участке</span>
+                <span class="care-tag care-tag-accent">✦ Щадящий уход</span>
+              </div>
+            </div>
+            <div class="care-visual">
+              <img src="assets/images/care-home.webp" alt="Подбор средств под материалы" loading="lazy">
+            </div>
+          </article>
+
+          <article class="care-card care-card-sand">
+            <div class="care-body">
+              <span class="care-pill">Для вашего бизнеса</span>
+              <h3 class="care-title">Техника для сложных задач</h3>
+              <p class="care-text">Роторные машины, промпылесосы и немецкая химия KIEHL — согласуем график и доступы заранее.</p>
+              <div class="care-tags">
+                <span class="care-tag care-tag-dark">⚡ Немецкий KIEHL</span>
+                <span class="care-tag care-tag-accent">✓ Договор и ЭДО</span>
+              </div>
+            </div>
+            <div class="care-visual">
+              <img src="assets/images/care-business.webp" alt="Профессиональная техника для бизнеса" loading="lazy">
+            </div>
+          </article>
         </div>
-        <div class="works-list" id="worksList">
-          <!-- Rendered dynamically from data/media.json -->
+
+        <div class="care-dots" id="careDots" aria-label="Навигация по карточкам">
+          <button type="button" class="care-dot is-active" data-index="0" aria-label="Карточка 1"></button>
+          <button type="button" class="care-dot" data-index="1" aria-label="Карточка 2"></button>
+          <button type="button" class="care-dot" data-index="2" aria-label="Карточка 3"></button>
         </div>
       </div>
     </section>
 
-    <!-- How We Work Section -->
-    <section class="section section-cream section-compact" id="process">
-      <div class="container process-layout">
-        <h2 class="section-title section-title-dark process-heading">Как мы работаем</h2>
-        <ol class="process-steps">
-          <li class="process-step">
-            <span class="process-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="6"></circle>
-                <path d="M20 20l-4.2-4.2"></path>
-              </svg>
-            </span>
-            <span class="process-label">Осмотр</span>
+    <!-- Our Works Section (ONLY First Video on page, rest in Gallery Modal) -->
+    <section class="section" id="works">
+      <div class="container">
+        <div class="section-head-split works-head">
+          <div>
+            <div class="section-eyebrow">ПОРТФОЛИО</div>
+            <h2 class="section-title">Наши работы</h2>
+            <p class="section-sub-note" id="worksNote">Нажмите на видео или кнопку, чтобы открыть полную галерею фото и видео с объектов</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnOpenWorksModal">Смотреть все фото и видео →</button>
+        </div>
+
+        <div class="works-featured-wrap" id="worksFeaturedWrap">
+          <!-- Rendered dynamically: ONLY the first video card -->
+        </div>
+      </div>
+    </section>
+
+    <!-- How to Arrange Cleaning Section (from screenshot 2) -->
+    <section class="section section-alt" id="how">
+      <div class="container">
+        <div class="section-eyebrow">БЕЗ ЛИШНИХ ШАГОВ</div>
+        <h2 class="section-title">Как договориться об уборке</h2>
+        <p class="section-lead">Свяжитесь с нами удобным способом. Для первого обсуждения достаточно описания задачи и нескольких фотографий.</p>
+
+        <ol class="steps-list">
+          <li class="step-row">
+            <span class="step-num">01</span>
+            <div class="step-body">
+              <h3>Напишите или позвоните</h3>
+              <p>Укажите адрес или район, тип объекта и желаемую дату.</p>
+            </div>
           </li>
-          <li class="process-arrow" aria-hidden="true">→</li>
-          <li class="process-step">
-            <span class="process-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="6" y="4" width="12" height="16" rx="2"></rect>
-                <path d="M9 8h6M9 12h6M9 16h4"></path>
-              </svg>
-            </span>
-            <span class="process-label">Согласование</span>
+          <li class="step-row">
+            <span class="step-num">02</span>
+            <div class="step-body">
+              <h3>Обсудим детали</h3>
+              <p>Уточним площадь, состояние и необходимые работы. Согласуем стоимость и время.</p>
+            </div>
           </li>
-          <li class="process-arrow" aria-hidden="true">→</li>
-          <li class="process-step">
-            <span class="process-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M7 12.5l3.2 3.2L17.5 8.5"></path>
-              </svg>
-            </span>
-            <span class="process-label">Приёмка</span>
+          <li class="step-row">
+            <span class="step-num">03</span>
+            <div class="step-body">
+              <h3>Проведём уборку</h3>
+              <p>Выполним работы по согласованному перечню с контролем качества.</p>
+            </div>
           </li>
         </ol>
       </div>
     </section>
 
-    <!-- Guarantees Section -->
-    <section class="section section-dark section-compact" id="guarantees">
-      <div class="container guarantees-layout">
-        <h2 class="section-title section-title-light guarantees-heading">Наши гарантии</h2>
-        <div class="guarantees-divider" aria-hidden="true"></div>
-        <p class="guarantees-text" id="guaranteesText">Условия уточняются</p>
+    <!-- Contract & EDO Section (from screenshot 3 + user's EDO requirement) -->
+    <section class="section" id="contract">
+      <div class="container">
+        <div class="section-eyebrow">ПОНЯТНЫЕ УСЛОВИЯ НА КАЖДОМ ЭТАПЕ</div>
+        <h2 class="section-title">Работаем по договору</h2>
+        <p class="section-lead">Работаем по договору, предоставляем все закрывающие документы, работаем с ЭДО. Фиксируем состояние объекта и результат уборки.</p>
+
+        <div class="contract-grid">
+          <article class="contract-card">
+            <span class="contract-step-label">01 / ДО УБОРКИ</span>
+            <h3>Осмотр объекта</h3>
+            <p>Вместе с заказчиком осматриваем объект и подписываем акт осмотра. Указываем состояние поверхностей, имеющиеся повреждения, особенности загрязнений и ограничения доступа. Перечень работ, исключения и стоимость согласуем заранее. При необходимости дополняем акт фотографиями.</p>
+          </article>
+
+          <article class="contract-card">
+            <span class="contract-step-label">02 / ПОСЛЕ УБОРКИ</span>
+            <h3>Приёмка результата</h3>
+            <p>Вместе проверяем результат по согласованному перечню и подписываем акт приёмки оказанных услуг (бумажно или через ЭДО). Если есть замечания, фиксируем их в акте и согласуем порядок и срок устранения.</p>
+          </article>
+        </div>
+
+        <div class="contract-callout">
+          Дополнительные работы выполняем только после отдельного согласования их перечня и стоимости.
+        </div>
+      </div>
+    </section>
+
+    <!-- Guarantees Section (3 Dark ICT Cards from screenshot 8) -->
+    <section class="section section-alt" id="guarantees">
+      <div class="container">
+        <div class="section-eyebrow">ДОГОВОРЁННОСТИ ИМЕЮТ ЗНАЧЕНИЕ</div>
+        <h2 class="section-title">Наши гарантии</h2>
+
+        <div class="guarantees-grid" id="guaranteesTrack">
+          <article class="guarantee-card">
+            <span class="guarantee-num">01</span>
+            <h3>Устраним замечания бесплатно</h3>
+            <p>Если при приёмке выявлены замечания по согласованному перечню работ, устраним их бесплатно в согласованный с вами срок.</p>
+          </article>
+
+          <article class="guarantee-card">
+            <span class="guarantee-num">02</span>
+            <h3>Фиксируем стоимость</h3>
+            <p>Стоимость и перечень работ закрепляем в договоре. Для годового обслуживания фиксируем цену на год. Дополнительные работы выполняем только после согласования.</p>
+          </article>
+
+          <article class="guarantee-card">
+            <span class="guarantee-num">03</span>
+            <h3>Конфиденциальность</h3>
+            <p>На объектах работают проверенные специалисты. Бережно относимся к личным вещам и информации заказчика. Фото и видео публикуем только с его разрешения.</p>
+          </article>
+        </div>
+
+        <div class="care-dots" id="guaranteesDots" aria-label="Навигация по гарантиям">
+          <button type="button" class="care-dot is-active" data-index="0" aria-label="Гарантия 1"></button>
+          <button type="button" class="care-dot" data-index="1" aria-label="Гарантия 2"></button>
+          <button type="button" class="care-dot" data-index="2" aria-label="Гарантия 3"></button>
+        </div>
       </div>
     </section>
 
     <!-- FAQ Section -->
-    <section class="section section-cream section-compact" id="faq">
-      <div class="container faq-layout">
-        <h2 class="section-title section-title-dark faq-heading">Частые вопросы</h2>
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-eyebrow">ОТВЕТЫ НА ВОПРОСЫ</div>
+        <h2 class="section-title">Частые вопросы</h2>
         <div class="faq-list" id="faqList">
           <!-- Rendered dynamically from data/site-config.json -->
         </div>
@@ -152,73 +301,84 @@
   </main>
 
   <!-- Contacts & Footer -->
-  <footer class="section section-dark site-footer" id="contacts">
+  <footer class="site-footer" id="contacts">
     <div class="container">
-      <div class="contacts-layout">
-        <h2 class="section-title section-title-light contacts-heading">Контакты</h2>
-        <div class="contacts-divider" aria-hidden="true"></div>
-        <div class="contacts-items">
-          <a href="#contacts" class="contact-row js-phone-cta" id="contactPhoneLink">
-            <span class="contact-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.58 2.81.7A2 2 0 0 1 22 16.92z"></path>
-              </svg>
-            </span>
-            <span class="contact-value" id="contactPhoneText">Телефоны</span>
+      <div class="contacts-grid">
+        <div class="contacts-intro">
+          <div class="footer-eyebrow">СВЯЗАТЬСЯ С НАМИ</div>
+          <h2 class="footer-heading">Контакты</h2>
+          <p class="footer-note">Работаем по договору, предоставляем все закрывающие документы, работаем с ЭДО.</p>
+        </div>
+
+        <div class="contacts-cards">
+          <a href="tel:+79113907700" class="contact-pill js-phone-cta" id="contactPhone1">
+            <span class="contact-pill-label">Телефон (основной)</span>
+            <strong id="contactPhone1Text">+7 (911) 390-77-00</strong>
           </a>
 
-          <a href="#contacts" class="contact-row js-email-cta" id="contactEmailLink">
-            <span class="contact-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-                <path d="M3 7l9 6 9-6"></path>
-              </svg>
-            </span>
-            <span class="contact-value" id="contactEmailText">Электронная почта</span>
+          <a href="tel:+79119195845" class="contact-pill" id="contactPhone2">
+            <span class="contact-pill-label">Телефон (дополнительный)</span>
+            <strong id="contactPhone2Text">+7 (911) 919-58-45</strong>
+          </a>
+
+          <a href="tel:+79113907700" class="contact-pill" id="contactMax">
+            <span class="contact-pill-label">Мессенджер MAX</span>
+            <strong id="contactMaxText">8 (911) 390-77-00</strong>
+          </a>
+
+          <a href="https://t.me/Ict_pro_ru" target="_blank" rel="noopener" class="contact-pill js-tg-cta" id="contactTg">
+            <span class="contact-pill-label">Telegram</span>
+            <strong id="contactTgText">@Ict_pro_ru</strong>
+          </a>
+
+          <a href="mailto:ict-pro.spb@yandex.ru?subject=%D0%97%D0%B0%D1%8F%D0%B2%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D0%BD%D0%B3%20ICT" class="contact-pill contact-pill-wide js-email-cta" id="contactEmail">
+            <span class="contact-pill-label">Электронная почта · Нажмите, чтобы написать →</span>
+            <strong id="contactEmailText">ict-pro.spb@yandex.ru</strong>
           </a>
         </div>
       </div>
 
-      <hr class="footer-accent-line">
-
       <div class="footer-bottom">
-        <p class="footer-legal" id="legalInfo">ООО · Реквизиты уточняются</p>
+        <span class="footer-legal" id="legalInfo">ООО «Технологии промышленной чистоты» · Работаем с юрлицами, ИП и физлицами · ЭДО</span>
         <a href="admin.html" class="footer-admin-link" title="Панель управления сайтом">Управление</a>
       </div>
     </div>
   </footer>
 
-  <!-- Service Details Modal -->
+  <!-- Floating Scroll-to-Top Button -->
+  <button type="button" class="scroll-top-btn" id="scrollTopBtn" aria-label="Наверх" hidden>↑</button>
+
+  <!-- MODAL 1: Service Details Modal -->
   <div class="modal-backdrop" id="serviceModal" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle" hidden>
     <div class="modal-dialog">
       <div class="modal-header">
         <div class="modal-title-wrap">
           <span class="modal-service-icon" id="serviceModalIcon" aria-hidden="true"></span>
-          <h3 class="modal-title" id="serviceModalTitle">Название услуги</h3>
+          <div>
+            <h3 class="modal-title" id="serviceModalTitle">Название услуги</h3>
+            <span class="modal-price-pill" id="serviceModalPrice"></span>
+          </div>
         </div>
         <button type="button" class="modal-close" id="serviceModalClose" aria-label="Закрыть окно">&times;</button>
       </div>
 
       <div class="modal-body">
-        <!-- Block 1: Included -->
         <section class="modal-block">
           <h4 class="modal-block-title">
             <span class="modal-block-dot modal-block-dot-included" aria-hidden="true"></span>
-            Что входит в стоимость
+            Что входит в уборку
           </h4>
           <ul class="modal-checklist" id="serviceModalIncluded"></ul>
         </section>
 
-        <!-- Block 2: Excluded -->
         <section class="modal-block modal-block-excluded">
           <h4 class="modal-block-title">
             <span class="modal-block-dot modal-block-dot-excluded" aria-hidden="true"></span>
-            Что не входит в услугу
+            Важно: что не входит в услугу
           </h4>
           <ul class="modal-excluded-list" id="serviceModalExcluded"></ul>
         </section>
 
-        <!-- Block 3: Additional Paid Works -->
         <section class="modal-block">
           <div class="modal-extras-head">
             <h4 class="modal-block-title">Дополнительные работы</h4>
@@ -226,11 +386,30 @@
           </div>
           <div class="modal-extras-table" id="serviceModalExtras"></div>
         </section>
+
+        <div class="modal-footer modal-footer-inline">
+          <a href="tel:+79113907700" class="btn btn-primary js-phone-cta">Позвонить</a>
+          <a href="https://t.me/Ict_pro_ru" target="_blank" rel="noopener" class="btn btn-outline-dark js-tg-cta">Написать в Telegram</a>
+          <a href="mailto:ict-pro.spb@yandex.ru?subject=%D0%97%D0%B0%D1%8F%D0%B2%D0%BA%D0%B0%20%D0%BD%D0%B0%20%D0%BA%D0%BB%D0%B8%D0%BD%D0%B8%D0%BD%D0%B3%20ICT" class="btn btn-outline-dark js-email-cta">Написать на почту</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Our Works Photo & Video Gallery Modal -->
+  <div class="modal-backdrop" id="worksModal" role="dialog" aria-modal="true" aria-labelledby="worksModalTitle" hidden>
+    <div class="modal-dialog modal-dialog-wide">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title" id="worksModalTitle">Наши работы — Фото и видео</h3>
+          <span class="modal-subtitle">Реальные выполненные объекты компании ICT</span>
+        </div>
+        <button type="button" class="modal-close" id="worksModalClose" aria-label="Закрыть галерею">&times;</button>
       </div>
 
-      <div class="modal-footer">
-        <a href="#contacts" class="btn btn-primary js-phone-cta js-modal-close-on-click">Позвонить</a>
-        <a href="#contacts" class="btn btn-outline-dark js-email-cta js-modal-close-on-click">Написать на почту</a>
+      <div class="modal-body">
+        <div class="gallery-modal-videos" id="worksModalVideos"></div>
+        <div class="gallery-modal-photos" id="worksModalPhotos"></div>
       </div>
     </div>
   </div>
@@ -244,6 +423,9 @@
     </figure>
   </div>
 
-  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" defer></script>
+  <script src="js/hero-3d.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/motion.js" defer></script>
 </body>
 </html>

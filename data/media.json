@@ -1,21 +1,55 @@
 {
-  "version": 1,
-  "hero": {
-    "src": "assets/images/hero.webp",
-    "alt": "Сотрудник ICT выполняет промышленный клининг поломоечной машиной"
+  "version": 3,
+  "logo": {
+    "src": "assets/images/logo-mark.webp",
+    "alt": "ICT — Технологии промышленной чистоты"
   },
-  "works": [
+  "hero": {
+    "src": "assets/images/hero-emblem.webp",
+    "alt": "ICT — Технологии промышленной чистоты"
+  },
+  "gallery": [
     {
-      "id": "work-1",
-      "title": "Промышленный цех",
-      "before": {
-        "src": "assets/images/work-1-before.webp",
-        "alt": "Промышленный цех до уборки"
-      },
-      "after": {
-        "src": "assets/images/work-1-after.webp",
-        "alt": "Промышленный цех после уборки"
-      }
+      "id": "work-video-1",
+      "type": "video",
+      "src": "assets/videos/post-construction.mp4",
+      "title": "Послестроительная уборка",
+      "caption": "Видео с выполненного объекта ICT"
+    },
+    {
+      "id": "work-photo-apartment",
+      "type": "photo",
+      "src": "assets/images/work-apartment.webp",
+      "title": "Уборка квартиры после ремонта",
+      "caption": "Кухня, гостиная, санузел и все поверхности"
+    },
+    {
+      "id": "work-photo-wfp",
+      "type": "photo",
+      "src": "assets/images/work-wfp-facade.webp",
+      "title": "Мойка фасада методом WFP",
+      "caption": "Очистка фасадных панелей деионизированной водой"
+    },
+    {
+      "id": "work-photo-windows",
+      "type": "photo",
+      "src": "assets/images/work-windows-spb.webp",
+      "title": "Мойка окон и витрин в Санкт-Петербурге",
+      "caption": "Профессиональная очистка остекления на высоте"
+    },
+    {
+      "id": "work-photo-mattress",
+      "type": "photo",
+      "src": "assets/images/work-mattress.webp",
+      "title": "Химчистка матраса",
+      "caption": "Глубокая экстракторная чистка и выведение пятен"
+    },
+    {
+      "id": "work-photo-fire",
+      "type": "photo",
+      "src": "assets/images/work-post-fire.webp",
+      "title": "Уборка после пожара",
+      "caption": "Сложный объект — удаление сажи и последствий возгорания"
     }
   ]
 }

@@ -212,13 +212,11 @@
 
     if (currentMode === 'local') {
       const localCopy = structuredClone(mediaState);
-      // Store dataUrl in local override for instant browser preview
-      if (repoRelPath === 'assets/images/hero.webp') {
+      if (repoRelPath === 'assets/images/hero-emblem.webp') {
         localCopy.hero.src = dataUrl;
-      } else {
-        localCopy.works.forEach((w) => {
-          if (w.before.src === repoRelPath) w.before.src = dataUrl;
-          if (w.after.src === repoRelPath) w.after.src = dataUrl;
+      } else if (Array.isArray(localCopy.gallery)) {
+        localCopy.gallery.forEach((item) => {
+          if (item.src === repoRelPath) item.src = dataUrl;
         });
       }
       localStorage.setItem(STORAGE_KEYS.media, JSON.stringify(localCopy));
@@ -278,10 +276,10 @@
       await saveImageAndMedia(
         pendingHeroBlob.blob,
         pendingHeroBlob.dataUrl,
-        'assets/images/hero.webp',
-        'Update hero.webp via ICT Admin',
+        'assets/images/hero-emblem.webp',
+        'Update hero-emblem.webp via ICT Admin',
         () => {
-          mediaState.hero.src = 'assets/images/hero.webp';
+          mediaState.hero.src = 'assets/images/hero-emblem.webp';
         }
       );
     } catch (err) {
@@ -290,75 +288,121 @@
   });
 
   btnDownloadHero.addEventListener('click', () => {
-    if (pendingHeroBlob) downloadBlob(pendingHeroBlob.blob, 'hero.webp');
+    if (pendingHeroBlob) downloadBlob(pendingHeroBlob.blob, 'hero-emblem.webp');
   });
 
-  // Works Pairs Renderer
+  // Our Works Photo & Video Gallery Renderer
   const worksAdminList = document.getElementById('worksAdminList');
 
   function renderWorksAdmin() {
     worksAdminList.innerHTML = '';
-    mediaState.works.forEach((pair, index) => {
+    if (!Array.isArray(mediaState.gallery)) mediaState.gallery = [];
+
+    mediaState.gallery.forEach((item, index) => {
       const card = document.createElement('div');
       card.className = 'work-pair-card';
 
       const head = document.createElement('div');
       head.className = 'work-pair-head';
 
+      const badge = document.createElement('span');
+      badge.className = `work-slot-label ${item.type === 'video' ? 'after' : 'before'}`;
+      badge.textContent = item.type === 'video' ? 'ВИДЕО' : 'ФОТО (WebP)';
+
       const titleInput = document.createElement('input');
       titleInput.type = 'text';
-      titleInput.value = pair.title || `Объект #${index + 1}`;
-      titleInput.placeholder = 'Название объекта';
+      titleInput.value = item.title || '';
+      titleInput.placeholder = 'Заголовок объекта';
       titleInput.addEventListener('input', () => {
-        pair.title = titleInput.value;
+        item.title = titleInput.value;
+      });
+
+      const capInput = document.createElement('input');
+      capInput.type = 'text';
+      capInput.value = item.caption || '';
+      capInput.placeholder = 'Подпись / описание';
+      capInput.addEventListener('input', () => {
+        item.caption = capInput.value;
       });
 
       const delBtn = document.createElement('button');
       delBtn.type = 'button';
       delBtn.className = 'adm-btn adm-btn-sm adm-btn-danger';
-      delBtn.textContent = 'Удалить пару';
+      delBtn.textContent = 'Удалить';
       delBtn.addEventListener('click', () => {
-        mediaState.works.splice(index, 1);
+        mediaState.gallery.splice(index, 1);
         renderWorksAdmin();
       });
 
+      head.appendChild(badge);
       head.appendChild(titleInput);
+      head.appendChild(capInput);
       head.appendChild(delBtn);
-
-      const slots = document.createElement('div');
-      slots.className = 'work-pair-slots';
-      slots.appendChild(createWorkSlotEditor(pair, 'before', 'До'));
-      slots.appendChild(createWorkSlotEditor(pair, 'after', 'После'));
-
       card.appendChild(head);
-      card.appendChild(slots);
+
+      if (item.type === 'video') {
+        const vidWrap = document.createElement('div');
+        vidWrap.className = 'form-grid-2';
+
+        const srcField = document.createElement('label');
+        srcField.className = 'field';
+        srcField.innerHTML = '<span>Путь к видео (.mp4)</span>';
+        const srcInput = document.createElement('input');
+        srcInput.type = 'text';
+        srcInput.value = item.src || '';
+        srcInput.placeholder = 'assets/videos/TPC-post-renovation.mp4';
+        srcInput.addEventListener('input', () => {
+          item.src = srcInput.value.trim();
+        });
+        srcField.appendChild(srcInput);
+
+        const posterField = document.createElement('label');
+        posterField.className = 'field';
+        posterField.innerHTML = '<span>Обложка видео (poster, необязательно)</span>';
+        const posterInput = document.createElement('input');
+        posterInput.type = 'text';
+        posterInput.value = item.poster || '';
+        posterInput.placeholder = 'assets/images/work-1-after.webp';
+        posterInput.addEventListener('input', () => {
+          item.poster = posterInput.value.trim();
+        });
+        posterField.appendChild(posterInput);
+
+        vidWrap.appendChild(srcField);
+        vidWrap.appendChild(posterField);
+        card.appendChild(vidWrap);
+      } else {
+        card.appendChild(createGalleryPhotoSlot(item));
+      }
+
       worksAdminList.appendChild(card);
     });
   }
 
-  function createWorkSlotEditor(pair, side, badgeLabel) {
+  function createGalleryPhotoSlot(item) {
     const slot = document.createElement('div');
-    slot.className = 'work-slot';
+    slot.className = 'photo-editor-grid';
 
-    const targetPath = `assets/images/${pair.id}-${side}.webp`;
+    const targetPath = item.src && item.src.startsWith('assets/images/')
+      ? item.src
+      : `assets/images/${item.id}.webp`;
     let pending = null;
-
-    const badge = document.createElement('span');
-    badge.className = `work-slot-label ${side}`;
-    badge.textContent = `${badgeLabel} · ${targetPath}`;
 
     const previewBox = document.createElement('div');
     previewBox.className = 'photo-preview-box';
     const img = document.createElement('img');
-    img.src = pair[side]?.src || '';
-    img.alt = `${pair.title || ''} ${badgeLabel}`;
+    img.src = item.src || '';
+    img.alt = item.title || 'Фото объекта';
     previewBox.appendChild(img);
 
-    const inputId = `file-${pair.id}-${side}-${Math.random().toString(36).slice(2, 6)}`;
+    const controls = document.createElement('div');
+    controls.className = 'photo-controls-box';
+
+    const inputId = `file-${item.id}-${Math.random().toString(36).slice(2, 6)}`;
     const dropLabel = document.createElement('label');
     dropLabel.className = 'dropzone';
     dropLabel.htmlFor = inputId;
-    dropLabel.innerHTML = `<input type="file" id="${inputId}" accept="image/*" hidden><span class="dropzone-title">Выбрать фото «${badgeLabel}»</span><span class="dropzone-sub">Конвертация в WebP (до 1400px)</span>`;
+    dropLabel.innerHTML = `<input type="file" id="${inputId}" accept="image/*" hidden><span class="dropzone-title">Выбрать фото объекта</span><span class="dropzone-sub">Конвертация в WebP (до 1400px) · ${targetPath}</span>`;
 
     const statsEl = document.createElement('div');
     statsEl.className = 'conversion-stats';
@@ -407,10 +451,7 @@
           targetPath,
           `Update ${targetPath} via ICT Admin`,
           () => {
-            pair[side] = {
-              src: targetPath,
-              alt: `${pair.title || 'Выполненная работа'} — ${badgeLabel}`
-            };
+            item.src = targetPath;
           }
         );
       } catch (err) {
@@ -419,28 +460,43 @@
     });
 
     dlBtn.addEventListener('click', () => {
-      if (pending) downloadBlob(pending.blob, `${pair.id}-${side}.webp`);
+      if (pending) downloadBlob(pending.blob, `${item.id}.webp`);
     });
 
     btnRow.appendChild(saveBtn);
     btnRow.appendChild(dlBtn);
+    controls.appendChild(dropLabel);
+    controls.appendChild(statsEl);
+    controls.appendChild(btnRow);
 
-    slot.appendChild(badge);
     slot.appendChild(previewBox);
-    slot.appendChild(dropLabel);
-    slot.appendChild(statsEl);
-    slot.appendChild(btnRow);
+    slot.appendChild(controls);
     return slot;
   }
 
-  document.getElementById('btnAddWorkPair').addEventListener('click', () => {
-    const nextNum = mediaState.works.length + 1;
-    const id = `work-${Date.now().toString(36)}`;
-    mediaState.works.push({
+  document.getElementById('btnAddGalleryPhoto').addEventListener('click', () => {
+    if (!Array.isArray(mediaState.gallery)) mediaState.gallery = [];
+    const id = `work-photo-${Date.now().toString(36)}`;
+    mediaState.gallery.push({
       id,
-      title: `Объект #${nextNum}`,
-      before: { src: '', alt: `Объект #${nextNum} — До` },
-      after: { src: '', alt: `Объект #${nextNum} — После` }
+      type: 'photo',
+      src: '',
+      title: `Объект #${mediaState.gallery.length + 1}`,
+      caption: 'Выполненная уборка'
+    });
+    renderWorksAdmin();
+  });
+
+  document.getElementById('btnAddGalleryVideo').addEventListener('click', () => {
+    if (!Array.isArray(mediaState.gallery)) mediaState.gallery = [];
+    const id = `work-video-${Date.now().toString(36)}`;
+    mediaState.gallery.push({
+      id,
+      type: 'video',
+      src: 'assets/videos/TPC-post-renovation.mp4',
+      poster: 'assets/images/work-1-after.webp',
+      title: 'Видео с объекта',
+      caption: 'Выполненная работа ICT'
     });
     renderWorksAdmin();
   });
@@ -497,12 +553,15 @@
     });
   }
 
+  const srvPriceLabelInput = document.getElementById('srvPriceLabelInput');
+
   function renderActiveServiceEditor() {
     const srv = servicesState.services[selectedServiceIdx];
     if (!srv) return;
 
     document.getElementById('editorServiceHeading').textContent = `Услуга: ${srv.title}`;
     srvTitleInput.value = srv.title || '';
+    if (srvPriceLabelInput) srvPriceLabelInput.value = srv.priceLabel || '';
 
     renderStringListEditor(includedEditorList, srv.included, 'Что входит в стоимость...');
     renderStringListEditor(excludedEditorList, srv.excluded, 'Что не входит в услугу...');
@@ -515,6 +574,12 @@
     srv.title = srvTitleInput.value;
     document.getElementById('editorServiceHeading').textContent = `Услуга: ${srv.title}`;
     renderServicesSidebar();
+  });
+
+  srvPriceLabelInput?.addEventListener('input', () => {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+    srv.priceLabel = srvPriceLabelInput.value;
   });
 
   function renderStringListEditor(container, list, placeholder) {
@@ -564,10 +629,10 @@
       priceInput.placeholder = 'Цена (напр. 1 500)';
 
       const unitSelect = document.createElement('select');
-      ['услуга', 'час', 'м²', 'шт.'].forEach((u) => {
+      ['услуга', 'час', 'м²', 'шт.', 'договорная'].forEach((u) => {
         const opt = document.createElement('option');
         opt.value = u;
-        opt.textContent = `руб./${u}`;
+        opt.textContent = u === 'договорная' ? 'договорная' : `руб./${u}`;
         if ((extra.unit || 'услуга') === u) opt.selected = true;
         unitSelect.appendChild(opt);
       });
@@ -575,7 +640,11 @@
       const preview = document.createElement('span');
       preview.className = 'extra-preview-pill';
       const updatePreview = () => {
-        preview.textContent = `от ${priceInput.value || '...'} руб./${unitSelect.value}`;
+        if (unitSelect.value === 'договорная' && !priceInput.value.trim()) {
+          preview.textContent = 'Цена договорная';
+        } else {
+          preview.textContent = `от ${priceInput.value || '...'} руб./${unitSelect.value}`;
+        }
       };
       updatePreview();
 

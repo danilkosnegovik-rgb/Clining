@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 280" fill="none" role="img" aria-label="Профессиональная техника для бизнеса">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#EFE4D7"/>
+      <stop offset="100%" stop-color="#DFCBB8"/>
+    </linearGradient>
+    <linearGradient id="steel3" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#F5F0EB"/>
+      <stop offset="50%" stop-color="#C9BEB4"/>
+      <stop offset="100%" stop-color="#8C7E73"/>
+    </linearGradient>
+    <linearGradient id="orange3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F27924"/>
+      <stop offset="100%" stop-color="#C9520B"/>
+    </linearGradient>
+  </defs>
+  <rect width="240" height="280" rx="16" fill="url(#bg3)"/>
+  <rect x="0" y="206" width="240" height="74" fill="#D7C0AA"/>
+  <ellipse cx="122" cy="228" rx="80" ry="12" fill="#28160E" opacity="0.18"/>
+  <!-- Industrial Vacuum / Scrubber Silhouette -->
+  <!-- Hose -->
+  <path d="M158 124C192 124 200 170 186 210" stroke="#28160E" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <!-- Tank Body -->
+  <rect x="74" y="108" width="90" height="96" rx="14" fill="url(#steel3)" stroke="#5E4D42" stroke-width="2"/>
+  <!-- Top Motor Cap -->
+  <path d="M78 108C78 86 96 74 119 74C142 74 160 86 160 108H78Z" fill="#28160E"/>
+  <rect x="96" y="60" width="46" height="16" rx="6" fill="url(#orange3)"/>
+  <!-- Orange Accent Stripe -->
+  <rect x="74" y="128" width="90" height="16" fill="url(#orange3)"/>
+  <!-- Base & Wheels -->
+  <rect x="64" y="198" width="110" height="18" rx="9" fill="#28160E"/>
+  <circle cx="82" cy="218" r="14" fill="#3B251A" stroke="#F5ECE4" stroke-width="3"/>
+  <circle cx="156" cy="218" r="14" fill="#3B251A" stroke="#F5ECE4" stroke-width="3"/>
+  <!-- Floor Gloss Reflection -->
+  <rect x="44" y="246" width="150" height="5" rx="2.5" fill="#FFF8F0" opacity="0.7"/>
+  <rect x="76" y="256" width="88" height="4" rx="2" fill="#FFF8F0" opacity="0.5"/>
+</svg>
