@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 60" fill="none" role="img" aria-label="ICT — Технологии промышленной чистоты">
+  <!-- Stylized vertical brush/nozzle + circular emblem -->
+  <circle cx="23" cy="30" r="14" stroke="#E85D04" stroke-width="2.2" stroke-dasharray="18 5 10 5"/>
+  <circle cx="23" cy="30" r="8.5" stroke="#28160E" stroke-width="1.6" stroke-dasharray="10 4"/>
+  <path d="M23 5L26 16H20L23 5Z" fill="#E85D04"/>
+  <rect x="21" y="16" width="4" height="34" rx="2" fill="#28160E"/>
+  <path d="M18 50H28L26.5 55H19.5L18 50Z" fill="#E85D04"/>
+  <circle cx="11" cy="21" r="2.2" fill="#E85D04"/>
+  <circle cx="35" cy="39" r="2.2" fill="#E85D04"/>
+  <!-- ICT Letters -->
+  <text x="41" y="38" fill="#28160E" font-family="Montserrat, Arial, sans-serif" font-weight="800" font-size="25" letter-spacing="0.5">ICT</text>
+  <!-- Subtitle -->
+  <text x="95" y="21" fill="#28160E" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="9.5" letter-spacing="0.4">ТЕХНОЛОГИИ</text>
+  <text x="95" y="33" fill="#28160E" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="9.5" letter-spacing="0.4">ПРОМЫШЛЕННОЙ</text>
+  <text x="95" y="45" fill="#28160E" font-family="Montserrat, Arial, sans-serif" font-weight="700" font-size="9.5" letter-spacing="0.4">ЧИСТОТЫ</text>
+</svg>

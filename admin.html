@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админ-панель — ICT Технологии промышленной чистоты</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <header class="admin-header">
+    <div class="admin-container admin-header-inner">
+      <div class="admin-brand">
+        <span class="admin-badge">ICT ADMIN</span>
+        <h1>Панель управления сайтом</h1>
+      </div>
+      <div class="admin-header-actions">
+        <a href="index.html" target="_blank" rel="noopener" class="adm-btn adm-btn-outline">Открыть сайт ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-container admin-main">
+    <!-- Connection / Save Mode Panel -->
+    <section class="adm-card mode-card">
+      <div class="mode-header">
+        <div>
+          <h2>Режим сохранения изменений</h2>
+          <p class="adm-muted">Выберите, куда сохранять WebP-фотографии и обновлённый прайс услуг</p>
+        </div>
+        <div class="mode-tabs" role="tablist" aria-label="Режим сохранения">
+          <button type="button" class="mode-tab is-active" data-mode="local">Локально / Превью</button>
+          <button type="button" class="mode-tab" data-mode="github">GitHub API</button>
+          <button type="button" class="mode-tab" data-mode="php">PHP-хостинг</button>
+        </div>
+      </div>
+
+      <!-- Local Mode Info -->
+      <div class="mode-panel" id="modePanelLocal">
+        <p class="mode-hint">
+          Изменения сразу применяются для предпросмотра на <strong>index.html</strong> в этом браузере.
+          Также вы можете скачать готовые <code>.webp</code> и JSON-файлы на компьютер.
+        </p>
+        <div class="mode-inline-actions">
+          <button type="button" class="adm-btn adm-btn-ghost" id="btnResetLocal">Сбросить локальный предпросмотр</button>
+        </div>
+      </div>
+
+      <!-- GitHub Mode Config -->
+      <div class="mode-panel" id="modePanelGithub" hidden>
+        <div class="form-grid-3">
+          <label class="field">
+            <span>Репозиторий (owner/repo)</span>
+            <input type="text" id="ghRepo" value="danilkosnegovik-rgb/Clining" placeholder="owner/repo">
+          </label>
+          <label class="field">
+            <span>Ветка</span>
+            <input type="text" id="ghBranch" value="main" placeholder="main">
+          </label>
+          <label class="field">
+            <span>GitHub Token (PAT с правом repo)</span>
+            <input type="password" id="ghToken" placeholder="ghp_... (хранится только в браузере)">
+          </label>
+        </div>
+        <label class="checkbox-field">
+          <input type="checkbox" id="ghRemember">
+          <span>Запомнить токен в этом браузере (localStorage)</span>
+        </label>
+      </div>
+
+      <!-- PHP Mode Config -->
+      <div class="mode-panel" id="modePanelPhp" hidden>
+        <div class="form-grid-2">
+          <label class="field">
+            <span>Пароль администратора PHP</span>
+            <input type="password" id="phpPassword" placeholder="Введите пароль из admin/api/config.local.php">
+          </label>
+          <div class="mode-hint-box">
+            Используются серверные обработчики <code>admin/api/upload.php</code> и <code>admin/api/save-services.php</code>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status Toast -->
+    <div class="adm-toast" id="adminToast" role="status" aria-live="polite" hidden></div>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="section-tabs" role="tablist">
+      <button type="button" class="section-tab is-active" data-tab="photos">1. Фотографии и WebP-конвертер</button>
+      <button type="button" class="section-tab" data-tab="services">2. Услуги и доп. работы</button>
+    </nav>
+
+    <!-- TAB 1: PHOTOS & WEBP CONVERTER -->
+    <section class="tab-panel" id="tabPhotos">
+      <div class="adm-card webp-settings-card">
+        <div class="webp-settings-row">
+          <div>
+            <h3>Настройки автоматической конвертации в WebP</h3>
+            <p class="adm-muted">Любое загруженное фото (JPG, PNG, BMP, WebP) автоматически сжимается и конвертируется в <code>.webp</code> в браузере перед сохранением.</p>
+          </div>
+          <div class="webp-controls">
+            <label class="field-inline">
+              <span>Качество WebP: <strong id="webpQualityVal">82%</strong></span>
+              <input type="range" id="webpQuality" min="50" max="95" value="82">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Photo Card -->
+      <div class="adm-card">
+        <div class="card-head">
+          <div>
+            <h3>Главный баннер (Hero)</h3>
+            <p class="adm-muted">Рекомендуемое соотношение 16:9, автоматический ресайз до 1920px по ширине</p>
+          </div>
+          <span class="file-path-tag">assets/images/hero.webp</span>
+        </div>
+
+        <div class="photo-editor-grid">
+          <div class="photo-preview-box">
+            <img id="heroPreviewImg" src="assets/images/hero.webp" alt="Превью Hero">
+          </div>
+          <div class="photo-controls-box">
+            <label class="dropzone" for="heroFileInput">
+              <input type="file" id="heroFileInput" accept="image/*" hidden>
+              <span class="dropzone-title">Перетащите фото или нажмите для выбора</span>
+              <span class="dropzone-sub">JPG, PNG, WebP → автоматическая конвертация в WebP</span>
+            </label>
+            <div class="conversion-stats" id="heroStats" hidden></div>
+            <div class="btn-row">
+              <button type="button" class="adm-btn adm-btn-primary" id="btnSaveHero" disabled>Сохранить Hero (WebP)</button>
+              <button type="button" class="adm-btn adm-btn-ghost" id="btnDownloadHero" disabled>Скачать .webp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed Works Pairs -->
+      <div class="adm-card">
+        <div class="card-head">
+          <div>
+            <h3>Выполненные работы («До» и «После»)</h3>
+            <p class="adm-muted">Заменяйте фотографии или добавляйте новые пары объектов (ресайз до 1400px, формат WebP)</p>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="adm-btn adm-btn-outline-dark" id="btnAddWorkPair">+ Добавить пару «До / После»</button>
+            <button type="button" class="adm-btn adm-btn-primary" id="btnSaveMediaJson">Сохранить media.json</button>
+          </div>
+        </div>
+
+        <div class="works-admin-list" id="worksAdminList">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: SERVICES & EXTRA WORKS -->
+    <section class="tab-panel" id="tabServices" hidden>
+      <div class="services-admin-layout">
+        <!-- Sidebar list of services -->
+        <aside class="adm-card services-sidebar">
+          <div class="sidebar-head">
+            <h3>Услуги (<span id="servicesCount">0</span>)</h3>
+          </div>
+          <div class="services-nav-list" id="servicesNavList"></div>
+        </aside>
+
+        <!-- Service Editor Form -->
+        <div class="adm-card service-editor-card" id="serviceEditorCard">
+          <div class="card-head">
+            <h3 id="editorServiceHeading">Редактирование услуги</h3>
+            <div class="btn-row">
+              <button type="button" class="adm-btn adm-btn-ghost" id="btnDownloadServices">Скачать services.json</button>
+              <button type="button" class="adm-btn adm-btn-primary" id="btnSaveServices">Сохранить услуги</button>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Название услуги</span>
+            <input type="text" id="srvTitleInput" placeholder="Название услуги">
+          </label>
+
+          <!-- Included Block -->
+          <div class="editor-subsection">
+            <div class="subsection-head">
+              <h4>1. Что входит в стоимость</h4>
+              <button type="button" class="adm-btn adm-btn-sm adm-btn-outline-dark" id="btnAddIncluded">+ Добавить пункт</button>
+            </div>
+            <div class="dynamic-list" id="includedEditorList"></div>
+          </div>
+
+          <!-- Excluded Block -->
+          <div class="editor-subsection">
+            <div class="subsection-head">
+              <h4>2. Что не входит в услугу</h4>
+              <button type="button" class="adm-btn adm-btn-sm adm-btn-outline-dark" id="btnAddExcluded">+ Добавить пункт</button>
+            </div>
+            <div class="dynamic-list" id="excludedEditorList"></div>
+          </div>
+
+          <!-- Extras Price Table Block -->
+          <div class="editor-subsection">
+            <div class="subsection-head">
+              <div>
+                <h4>3. Дополнительные работы (не включены в общую стоимость)</h4>
+                <p class="adm-muted">Отображаются в модалке: название слева, цена справа в формате <code>от {цена} руб./{единица}</code></p>
+              </div>
+              <button type="button" class="adm-btn adm-btn-sm adm-btn-outline-dark" id="btnAddExtra">+ Добавить доп. работу</button>
+            </div>
+            <div class="extras-editor-list" id="extrasEditorList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>

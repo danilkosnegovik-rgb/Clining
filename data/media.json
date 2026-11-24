@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hero": {
+    "src": "assets/images/hero.webp",
+    "alt": "Сотрудник ICT выполняет промышленный клининг поломоечной машиной"
+  },
+  "works": [
+    {
+      "id": "work-1",
+      "title": "Промышленный цех",
+      "before": {
+        "src": "assets/images/work-1-before.webp",
+        "alt": "Промышленный цех до уборки"
+      },
+      "after": {
+        "src": "assets/images/work-1-after.webp",
+        "alt": "Промышленный цех после уборки"
+      }
+    }
+  ]
+}

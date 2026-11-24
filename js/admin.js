@@ -1,0 +1,752 @@
+(function () {
+  'use strict';
+
+  const STORAGE_KEYS = {
+    media: 'ict_preview_media_v1',
+    services: 'ict_preview_services_v1',
+    ghToken: 'ict_gh_token_v1',
+    ghRepo: 'ict_gh_repo_v1',
+    ghBranch: 'ict_gh_branch_v1'
+  };
+
+  let currentMode = 'local';
+  let mediaState = { version: 1, hero: { src: 'assets/images/hero.webp', alt: '' }, works: [] };
+  let servicesState = { version: 1, services: [] };
+  let selectedServiceIdx = 0;
+  let pendingHeroBlob = null;
+
+  const toastEl = document.getElementById('adminToast');
+
+  function showToast(message, type = 'info') {
+    toastEl.textContent = message;
+    toastEl.className = `adm-toast is-${type}`;
+    toastEl.hidden = false;
+  }
+
+  function formatKB(bytes) {
+    if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} МБ`;
+    return `${Math.round(bytes / 1024)} КБ`;
+  }
+
+  // Convert any image File to WebP Blob via HTML5 Canvas
+  async function convertImageToWebP(file, maxWidth = 1600, quality = 0.82) {
+    const imgUrl = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('Не удалось прочитать изображение'));
+        el.src = imgUrl;
+      });
+
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(
+          (result) => (result ? resolve(result) : reject(new Error('Браузер не поддерживает экспорт в WebP'))),
+          'image/webp',
+          quality
+        );
+      });
+
+      const dataUrl = await blobToDataUrl(blob);
+      return {
+        blob,
+        dataUrl,
+        width,
+        height,
+        originalSize: file.size,
+        webpSize: blob.size
+      };
+    } finally {
+      URL.revokeObjectURL(imgUrl);
+    }
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function blobToBase64(blob) {
+    return blobToDataUrl(blob).then((dataUrl) => String(dataUrl).split(',')[1]);
+  }
+
+  function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    bytes.forEach((b) => {
+      binary += String.fromCharCode(b);
+    });
+    return btoa(binary);
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadJson(obj, filename) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadBlob(blob, filename);
+  }
+
+  function getQuality() {
+    return Number(document.getElementById('webpQuality').value || 82) / 100;
+  }
+
+  // GitHub API Helpers
+  function getGithubConfig() {
+    const repo = document.getElementById('ghRepo').value.trim();
+    const branch = document.getElementById('ghBranch').value.trim() || 'main';
+    const token = document.getElementById('ghToken').value.trim();
+    if (!repo || !token) {
+      throw new Error('Укажите репозиторий (owner/repo) и GitHub Token в настройках режима GitHub API');
+    }
+    if (document.getElementById('ghRemember').checked) {
+      localStorage.setItem(STORAGE_KEYS.ghToken, token);
+    } else {
+      sessionStorage.setItem(STORAGE_KEYS.ghToken, token);
+    }
+    localStorage.setItem(STORAGE_KEYS.ghRepo, repo);
+    localStorage.setItem(STORAGE_KEYS.ghBranch, branch);
+    return { repo, branch, token };
+  }
+
+  async function githubPutFile(repoPath, base64Content, commitMessage) {
+    const { repo, branch, token } = getGithubConfig();
+    const apiUrl = `https://api.github.com/repos/${repo}/contents/${repoPath}`;
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json'
+    };
+
+    let sha;
+    const getRes = await fetch(`${apiUrl}?ref=${encodeURIComponent(branch)}`, { headers });
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      sha = existing.sha;
+    }
+
+    const body = {
+      message: commitMessage,
+      content: base64Content,
+      branch
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(body)
+    });
+
+    if (!putRes.ok) {
+      const errData = await putRes.json().catch(() => ({}));
+      throw new Error(`GitHub API (${putRes.status}): ${errData.message || 'Ошибка сохранения'}`);
+    }
+    return putRes.json();
+  }
+
+  // PHP API Helpers
+  function getPhpPassword() {
+    const pwd = document.getElementById('phpPassword').value;
+    if (!pwd) throw new Error('Введите пароль администратора PHP');
+    return pwd;
+  }
+
+  async function phpUploadWebp(blob, targetFilename, slotMeta) {
+    const pwd = getPhpPassword();
+    const fd = new FormData();
+    fd.append('file', blob, targetFilename);
+    fd.append('filename', targetFilename);
+    fd.append('mediaJson', JSON.stringify(mediaState));
+    if (slotMeta) fd.append('slot', slotMeta);
+
+    const res = await fetch('admin/api/upload.php', {
+      method: 'POST',
+      headers: { 'X-Admin-Password': pwd },
+      body: fd
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Ошибка PHP-сервера (${res.status})`);
+    }
+    return data;
+  }
+
+  async function phpSaveServices(payload) {
+    const pwd = getPhpPassword();
+    const res = await fetch('admin/api/save-services.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Admin-Password': pwd
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || `Ошибка сохранения услуг (${res.status})`);
+    }
+    return data;
+  }
+
+  // Unified save for image + media.json
+  async function saveImageAndMedia(blob, dataUrl, repoRelPath, commitMsg, applyLocalFn) {
+    applyLocalFn();
+
+    if (currentMode === 'local') {
+      const localCopy = structuredClone(mediaState);
+      // Store dataUrl in local override for instant browser preview
+      if (repoRelPath === 'assets/images/hero.webp') {
+        localCopy.hero.src = dataUrl;
+      } else {
+        localCopy.works.forEach((w) => {
+          if (w.before.src === repoRelPath) w.before.src = dataUrl;
+          if (w.after.src === repoRelPath) w.after.src = dataUrl;
+        });
+      }
+      localStorage.setItem(STORAGE_KEYS.media, JSON.stringify(localCopy));
+      showToast('Фото сконвертировано в WebP и применено в локальном предпросмотре. Откройте index.html для проверки!', 'success');
+      return;
+    }
+
+    if (currentMode === 'github') {
+      showToast('Отправка WebP-файла в GitHub...', 'info');
+      const b64Img = await blobToBase64(blob);
+      await githubPutFile(repoRelPath, b64Img, commitMsg);
+      const b64Json = utf8ToBase64(JSON.stringify(mediaState, null, 2));
+      await githubPutFile('data/media.json', b64Json, 'Update data/media.json from ICT Admin');
+      localStorage.removeItem(STORAGE_KEYS.media);
+      showToast(`Успешно опубликовано в GitHub: ${repoRelPath} и data/media.json`, 'success');
+      return;
+    }
+
+    if (currentMode === 'php') {
+      showToast('Загрузка WebP-файла на PHP-сервер...', 'info');
+      const filename = repoRelPath.split('/').pop();
+      await phpUploadWebp(blob, filename, repoRelPath);
+      localStorage.removeItem(STORAGE_KEYS.media);
+      showToast(`Сохранено на сервере: ${repoRelPath}`, 'success');
+    }
+  }
+
+  // Hero Uploader
+  const heroInput = document.getElementById('heroFileInput');
+  const heroPreviewImg = document.getElementById('heroPreviewImg');
+  const heroStats = document.getElementById('heroStats');
+  const btnSaveHero = document.getElementById('btnSaveHero');
+  const btnDownloadHero = document.getElementById('btnDownloadHero');
+
+  async function handleHeroFile(file) {
+    if (!file) return;
+    try {
+      const result = await convertImageToWebP(file, 1920, getQuality());
+      pendingHeroBlob = result;
+      heroPreviewImg.src = result.dataUrl;
+      const savedPct = Math.max(0, Math.round((1 - result.webpSize / result.originalSize) * 100));
+      heroStats.textContent = `WebP готов (${result.width}×${result.height}): было ${formatKB(result.originalSize)} → стало ${formatKB(result.webpSize)} (экономия ${savedPct}%)`;
+      heroStats.hidden = false;
+      btnSaveHero.disabled = false;
+      btnDownloadHero.disabled = false;
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  heroInput.addEventListener('change', (e) => handleHeroFile(e.target.files[0]));
+  setupDropzone(document.querySelector('label[for="heroFileInput"]'), handleHeroFile);
+
+  btnSaveHero.addEventListener('click', async () => {
+    if (!pendingHeroBlob) return;
+    try {
+      await saveImageAndMedia(
+        pendingHeroBlob.blob,
+        pendingHeroBlob.dataUrl,
+        'assets/images/hero.webp',
+        'Update hero.webp via ICT Admin',
+        () => {
+          mediaState.hero.src = 'assets/images/hero.webp';
+        }
+      );
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
+  btnDownloadHero.addEventListener('click', () => {
+    if (pendingHeroBlob) downloadBlob(pendingHeroBlob.blob, 'hero.webp');
+  });
+
+  // Works Pairs Renderer
+  const worksAdminList = document.getElementById('worksAdminList');
+
+  function renderWorksAdmin() {
+    worksAdminList.innerHTML = '';
+    mediaState.works.forEach((pair, index) => {
+      const card = document.createElement('div');
+      card.className = 'work-pair-card';
+
+      const head = document.createElement('div');
+      head.className = 'work-pair-head';
+
+      const titleInput = document.createElement('input');
+      titleInput.type = 'text';
+      titleInput.value = pair.title || `Объект #${index + 1}`;
+      titleInput.placeholder = 'Название объекта';
+      titleInput.addEventListener('input', () => {
+        pair.title = titleInput.value;
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'adm-btn adm-btn-sm adm-btn-danger';
+      delBtn.textContent = 'Удалить пару';
+      delBtn.addEventListener('click', () => {
+        mediaState.works.splice(index, 1);
+        renderWorksAdmin();
+      });
+
+      head.appendChild(titleInput);
+      head.appendChild(delBtn);
+
+      const slots = document.createElement('div');
+      slots.className = 'work-pair-slots';
+      slots.appendChild(createWorkSlotEditor(pair, 'before', 'До'));
+      slots.appendChild(createWorkSlotEditor(pair, 'after', 'После'));
+
+      card.appendChild(head);
+      card.appendChild(slots);
+      worksAdminList.appendChild(card);
+    });
+  }
+
+  function createWorkSlotEditor(pair, side, badgeLabel) {
+    const slot = document.createElement('div');
+    slot.className = 'work-slot';
+
+    const targetPath = `assets/images/${pair.id}-${side}.webp`;
+    let pending = null;
+
+    const badge = document.createElement('span');
+    badge.className = `work-slot-label ${side}`;
+    badge.textContent = `${badgeLabel} · ${targetPath}`;
+
+    const previewBox = document.createElement('div');
+    previewBox.className = 'photo-preview-box';
+    const img = document.createElement('img');
+    img.src = pair[side]?.src || '';
+    img.alt = `${pair.title || ''} ${badgeLabel}`;
+    previewBox.appendChild(img);
+
+    const inputId = `file-${pair.id}-${side}-${Math.random().toString(36).slice(2, 6)}`;
+    const dropLabel = document.createElement('label');
+    dropLabel.className = 'dropzone';
+    dropLabel.htmlFor = inputId;
+    dropLabel.innerHTML = `<input type="file" id="${inputId}" accept="image/*" hidden><span class="dropzone-title">Выбрать фото «${badgeLabel}»</span><span class="dropzone-sub">Конвертация в WebP (до 1400px)</span>`;
+
+    const statsEl = document.createElement('div');
+    statsEl.className = 'conversion-stats';
+    statsEl.hidden = true;
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'btn-row';
+
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'adm-btn adm-btn-sm adm-btn-primary';
+    saveBtn.textContent = 'Сохранить (WebP)';
+    saveBtn.disabled = true;
+
+    const dlBtn = document.createElement('button');
+    dlBtn.type = 'button';
+    dlBtn.className = 'adm-btn adm-btn-sm adm-btn-ghost';
+    dlBtn.textContent = 'Скачать .webp';
+    dlBtn.disabled = true;
+
+    async function onFile(file) {
+      if (!file) return;
+      try {
+        const res = await convertImageToWebP(file, 1400, getQuality());
+        pending = res;
+        img.src = res.dataUrl;
+        const pct = Math.max(0, Math.round((1 - res.webpSize / res.originalSize) * 100));
+        statsEl.textContent = `WebP (${res.width}×${res.height}): ${formatKB(res.originalSize)} → ${formatKB(res.webpSize)} (-${pct}%)`;
+        statsEl.hidden = false;
+        saveBtn.disabled = false;
+        dlBtn.disabled = false;
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    dropLabel.querySelector('input').addEventListener('change', (e) => onFile(e.target.files[0]));
+    setupDropzone(dropLabel, onFile);
+
+    saveBtn.addEventListener('click', async () => {
+      if (!pending) return;
+      try {
+        await saveImageAndMedia(
+          pending.blob,
+          pending.dataUrl,
+          targetPath,
+          `Update ${targetPath} via ICT Admin`,
+          () => {
+            pair[side] = {
+              src: targetPath,
+              alt: `${pair.title || 'Выполненная работа'} — ${badgeLabel}`
+            };
+          }
+        );
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    dlBtn.addEventListener('click', () => {
+      if (pending) downloadBlob(pending.blob, `${pair.id}-${side}.webp`);
+    });
+
+    btnRow.appendChild(saveBtn);
+    btnRow.appendChild(dlBtn);
+
+    slot.appendChild(badge);
+    slot.appendChild(previewBox);
+    slot.appendChild(dropLabel);
+    slot.appendChild(statsEl);
+    slot.appendChild(btnRow);
+    return slot;
+  }
+
+  document.getElementById('btnAddWorkPair').addEventListener('click', () => {
+    const nextNum = mediaState.works.length + 1;
+    const id = `work-${Date.now().toString(36)}`;
+    mediaState.works.push({
+      id,
+      title: `Объект #${nextNum}`,
+      before: { src: '', alt: `Объект #${nextNum} — До` },
+      after: { src: '', alt: `Объект #${nextNum} — После` }
+    });
+    renderWorksAdmin();
+  });
+
+  document.getElementById('btnSaveMediaJson').addEventListener('click', async () => {
+    try {
+      if (currentMode === 'local') {
+        localStorage.setItem(STORAGE_KEYS.media, JSON.stringify(mediaState));
+        downloadJson(mediaState, 'media.json');
+        showToast('media.json сохранён в локальный предпросмотр и скачан', 'success');
+      } else if (currentMode === 'github') {
+        const b64 = utf8ToBase64(JSON.stringify(mediaState, null, 2));
+        await githubPutFile('data/media.json', b64, 'Update data/media.json via ICT Admin');
+        showToast('data/media.json опубликован в GitHub', 'success');
+      } else if (currentMode === 'php') {
+        const pwd = getPhpPassword();
+        const fd = new FormData();
+        fd.append('mediaJson', JSON.stringify(mediaState));
+        const res = await fetch('admin/api/upload.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Password': pwd },
+          body: fd
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) throw new Error(data.error || 'Ошибка сохранения media.json');
+        showToast('data/media.json сохранён на PHP-сервере', 'success');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
+  // SERVICES EDITOR (TAB 2)
+  const servicesNavList = document.getElementById('servicesNavList');
+  const servicesCount = document.getElementById('servicesCount');
+  const srvTitleInput = document.getElementById('srvTitleInput');
+  const includedEditorList = document.getElementById('includedEditorList');
+  const excludedEditorList = document.getElementById('excludedEditorList');
+  const extrasEditorList = document.getElementById('extrasEditorList');
+
+  function renderServicesSidebar() {
+    servicesCount.textContent = String(servicesState.services.length);
+    servicesNavList.innerHTML = '';
+    servicesState.services.forEach((srv, idx) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `srv-nav-btn ${idx === selectedServiceIdx ? 'is-active' : ''}`;
+      btn.textContent = srv.title || `Услуга #${idx + 1}`;
+      btn.addEventListener('click', () => {
+        selectedServiceIdx = idx;
+        renderServicesSidebar();
+        renderActiveServiceEditor();
+      });
+      servicesNavList.appendChild(btn);
+    });
+  }
+
+  function renderActiveServiceEditor() {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+
+    document.getElementById('editorServiceHeading').textContent = `Услуга: ${srv.title}`;
+    srvTitleInput.value = srv.title || '';
+
+    renderStringListEditor(includedEditorList, srv.included, 'Что входит в стоимость...');
+    renderStringListEditor(excludedEditorList, srv.excluded, 'Что не входит в услугу...');
+    renderExtrasEditor(srv.extras);
+  }
+
+  srvTitleInput.addEventListener('input', () => {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+    srv.title = srvTitleInput.value;
+    document.getElementById('editorServiceHeading').textContent = `Услуга: ${srv.title}`;
+    renderServicesSidebar();
+  });
+
+  function renderStringListEditor(container, list, placeholder) {
+    container.innerHTML = '';
+    list.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'dynamic-row';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = item;
+      input.placeholder = placeholder;
+      input.addEventListener('input', () => {
+        list[idx] = input.value;
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'adm-btn adm-btn-sm adm-btn-danger';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Удалить пункт';
+      delBtn.addEventListener('click', () => {
+        list.splice(idx, 1);
+        renderStringListEditor(container, list, placeholder);
+      });
+
+      row.appendChild(input);
+      row.appendChild(delBtn);
+      container.appendChild(row);
+    });
+  }
+
+  function renderExtrasEditor(extras) {
+    extrasEditorList.innerHTML = '';
+    extras.forEach((extra, idx) => {
+      const row = document.createElement('div');
+      row.className = 'extra-editor-row';
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = extra.name || '';
+      nameInput.placeholder = 'Название доп. работы (слева)';
+
+      const priceInput = document.createElement('input');
+      priceInput.type = 'text';
+      priceInput.value = extra.price || '';
+      priceInput.placeholder = 'Цена (напр. 1 500)';
+
+      const unitSelect = document.createElement('select');
+      ['услуга', 'час', 'м²', 'шт.'].forEach((u) => {
+        const opt = document.createElement('option');
+        opt.value = u;
+        opt.textContent = `руб./${u}`;
+        if ((extra.unit || 'услуга') === u) opt.selected = true;
+        unitSelect.appendChild(opt);
+      });
+
+      const preview = document.createElement('span');
+      preview.className = 'extra-preview-pill';
+      const updatePreview = () => {
+        preview.textContent = `от ${priceInput.value || '...'} руб./${unitSelect.value}`;
+      };
+      updatePreview();
+
+      nameInput.addEventListener('input', () => {
+        extra.name = nameInput.value;
+      });
+      priceInput.addEventListener('input', () => {
+        extra.price = priceInput.value;
+        updatePreview();
+      });
+      unitSelect.addEventListener('change', () => {
+        extra.unit = unitSelect.value;
+        updatePreview();
+      });
+
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'adm-btn adm-btn-sm adm-btn-danger';
+      delBtn.textContent = '✕';
+      delBtn.title = 'Удалить доп. работу';
+      delBtn.addEventListener('click', () => {
+        extras.splice(idx, 1);
+        renderExtrasEditor(extras);
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(priceInput);
+      row.appendChild(unitSelect);
+      row.appendChild(preview);
+      row.appendChild(delBtn);
+      extrasEditorList.appendChild(row);
+    });
+  }
+
+  document.getElementById('btnAddIncluded').addEventListener('click', () => {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+    srv.included.push('');
+    renderActiveServiceEditor();
+  });
+
+  document.getElementById('btnAddExcluded').addEventListener('click', () => {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+    srv.excluded.push('');
+    renderActiveServiceEditor();
+  });
+
+  document.getElementById('btnAddExtra').addEventListener('click', () => {
+    const srv = servicesState.services[selectedServiceIdx];
+    if (!srv) return;
+    srv.extras.push({ name: '', price: '1 000', unit: 'услуга' });
+    renderActiveServiceEditor();
+  });
+
+  document.getElementById('btnDownloadServices').addEventListener('click', () => {
+    downloadJson(servicesState, 'services.json');
+  });
+
+  document.getElementById('btnSaveServices').addEventListener('click', async () => {
+    try {
+      if (currentMode === 'local') {
+        localStorage.setItem(STORAGE_KEYS.services, JSON.stringify(servicesState));
+        showToast('Услуги и цены сохранены в локальный предпросмотр. Откройте index.html и нажмите «Подробнее»!', 'success');
+      } else if (currentMode === 'github') {
+        showToast('Публикация data/services.json в GitHub...', 'info');
+        const b64 = utf8ToBase64(JSON.stringify(servicesState, null, 2));
+        await githubPutFile('data/services.json', b64, 'Update data/services.json via ICT Admin');
+        localStorage.removeItem(STORAGE_KEYS.services);
+        showToast('Перечень услуг и цены опубликованы в GitHub!', 'success');
+      } else if (currentMode === 'php') {
+        showToast('Сохранение услуг на PHP-сервере...', 'info');
+        await phpSaveServices(servicesState);
+        localStorage.removeItem(STORAGE_KEYS.services);
+        showToast('data/services.json успешно сохранён на PHP-сервере!', 'success');
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
+  // Helpers: Dropzone, Tabs, Modes
+  function setupDropzone(el, onFile) {
+    if (!el) return;
+    ['dragenter', 'dragover'].forEach((ev) => {
+      el.addEventListener(ev, (e) => {
+        e.preventDefault();
+        el.classList.add('is-dragover');
+      });
+    });
+    ['dragleave', 'drop'].forEach((ev) => {
+      el.addEventListener(ev, (e) => {
+        e.preventDefault();
+        el.classList.remove('is-dragover');
+      });
+    });
+    el.addEventListener('drop', (e) => {
+      const file = e.dataTransfer?.files?.[0];
+      if (file) onFile(file);
+    });
+  }
+
+  document.querySelectorAll('.mode-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      currentMode = btn.dataset.mode;
+      document.querySelectorAll('.mode-tab').forEach((b) => b.classList.toggle('is-active', b === btn));
+      document.getElementById('modePanelLocal').hidden = currentMode !== 'local';
+      document.getElementById('modePanelGithub').hidden = currentMode !== 'github';
+      document.getElementById('modePanelPhp').hidden = currentMode !== 'php';
+    });
+  });
+
+  document.querySelectorAll('.section-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.section-tab').forEach((b) => b.classList.toggle('is-active', b === btn));
+      document.getElementById('tabPhotos').hidden = tab !== 'photos';
+      document.getElementById('tabServices').hidden = tab !== 'services';
+    });
+  });
+
+  document.getElementById('webpQuality').addEventListener('input', (e) => {
+    document.getElementById('webpQualityVal').textContent = `${e.target.value}%`;
+  });
+
+  document.getElementById('btnResetLocal').addEventListener('click', () => {
+    localStorage.removeItem(STORAGE_KEYS.media);
+    localStorage.removeItem(STORAGE_KEYS.services);
+    showToast('Локальный предпросмотр сброшен. Перезагрузите страницу для загрузки данных с диска.', 'info');
+  });
+
+  // Init
+  async function init() {
+    // Restore saved GitHub settings (never hardcoded)
+    const savedRepo = localStorage.getItem(STORAGE_KEYS.ghRepo);
+    const savedBranch = localStorage.getItem(STORAGE_KEYS.ghBranch);
+    const savedToken = localStorage.getItem(STORAGE_KEYS.ghToken) || sessionStorage.getItem(STORAGE_KEYS.ghToken);
+    if (savedRepo) document.getElementById('ghRepo').value = savedRepo;
+    if (savedBranch) document.getElementById('ghBranch').value = savedBranch;
+    if (savedToken) document.getElementById('ghToken').value = savedToken;
+
+    try {
+      const [mediaRes, srvRes] = await Promise.all([
+        fetch(`data/media.json?v=${Date.now()}`, { cache: 'no-store' }),
+        fetch(`data/services.json?v=${Date.now()}`, { cache: 'no-store' })
+      ]);
+      const localMedia = JSON.parse(localStorage.getItem(STORAGE_KEYS.media) || 'null');
+      const localServices = JSON.parse(localStorage.getItem(STORAGE_KEYS.services) || 'null');
+
+      mediaState = localMedia || (await mediaRes.json());
+      servicesState = localServices || (await srvRes.json());
+
+      if (mediaState.hero?.src) {
+        heroPreviewImg.src = mediaState.hero.src;
+      }
+      renderWorksAdmin();
+      renderServicesSidebar();
+      renderActiveServiceEditor();
+    } catch (err) {
+      showToast(`Не удалось загрузить данные: ${err.message}. Запустите сайт через локальный сервер или хостинг.`, 'error');
+    }
+  }
+
+  init();
+})();

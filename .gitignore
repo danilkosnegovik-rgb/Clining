@@ -1,0 +1,13 @@
+# Local secrets & PHP config overrides
+admin/api/config.local.php
+.env
+.env.local
+
+# OS & Editor artifacts
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.log
+*.tmp
