@@ -17,6 +17,13 @@
       "caption": "Видео с выполненного объекта ICT"
     },
     {
+      "id": "work-video-2",
+      "type": "video",
+      "src": "assets/videos/post-construction-2.mp4",
+      "title": "Послестроительная уборка — объект №2",
+      "caption": "Видео с выполненного объекта ICT"
+    },
+    {
       "id": "work-photo-apartment",
       "type": "photo",
       "src": "assets/images/work-apartment.webp",
